@@ -1,0 +1,150 @@
+- name: OpenSearch ML configuration block (master node only)
+  block:
+
+    - name: Configure OpenSearch ML plugin settings
+      ansible.builtin.uri:
+        url: "https://{{ inventory_hostname }}:9200/_cluster/settings"
+        method: PUT
+        user: admin
+        password: "{{ admin_password }}"
+        force_basic_auth: yes
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+        body: |
+          {
+            "persistent": {
+              "plugins": {
+                "ml_commons": {
+                  "only_run_on_ml_node": "false",
+                  "model_access_control_enabled": "true",
+                  "native_memory_threshold": "99"
+                }
+              }
+            }
+          }
+        body_format: json
+      register: ml_settings_result
+      retries: 3
+      delay: 5
+      until: ml_settings_result.status == 200
+
+    - name: Register KNN ML model group
+      ansible.builtin.uri:
+        url: "https://{{ inventory_hostname }}:9200/_plugins/_ml/model_groups/_register"
+        method: POST
+        user: admin
+        password: "{{ admin_password }}"
+        force_basic_auth: yes
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+        body: |
+          {
+            "name": "KNN_model_group",
+            "description": "A model group for KNN Plugin",
+            "access_mode": "public"
+          }
+        body_format: json
+      register: knn_model_group_result
+
+    - name: Set model_group_id fact
+      ansible.builtin.set_fact:
+        model_group_id: "{{ knn_model_group_result.json.model_group_id }}"
+
+    - name: Register HuggingFace ML model
+      ansible.builtin.uri:
+        url: "https://{{ inventory_hostname }}:9200/_plugins/_ml/models/_register"
+        method: POST
+        user: admin
+        password: "{{ admin_password }}"
+        force_basic_auth: yes
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+        body: |
+          {
+            "name": "huggingface/sentence-transformers/all-MiniLM-L6-v2",
+            "version": "1.0.1",
+            "model_group_id": "{{ model_group_id }}",
+            "model_format": "TORCH_SCRIPT"
+          }
+        body_format: json
+      register: ml_model_result
+
+    - name: Set task_id fact for ML model registration
+      ansible.builtin.set_fact:
+        ml_model_task_id: "{{ ml_model_result.json.task_id }}"
+
+    - name: Debug ML model registration result
+      ansible.builtin.debug:
+        msg: "Model registration task_id: {{ ml_model_task_id }}"    
+
+    - name: Get ML model registration task status
+      ansible.builtin.uri:
+        url: "https://{{ inventory_hostname }}:9200/_plugins/_ml/tasks/{{ ml_model_task_id }}"
+        method: GET
+        user: admin
+        password: "{{ admin_password }}"
+        force_basic_auth: yes
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+      register: ml_task_status
+      retries: 3
+      delay: 5 
+      until: ml_task_status.json.status == "CREATED" or ml_task_status.json.status == "COMPLETED"
+
+    - name: Set ML model_id fact
+      ansible.builtin.set_fact:
+        ml_model_id: "{{ ml_task_status.json.model_id }}"
+
+    - name: Debug ML model_id
+      ansible.builtin.debug:
+        msg: "Registered ML model_id: {{ ml_model_id }}"
+
+    - name: Deploy ML model
+      ansible.builtin.uri:
+        url: "https://{{ inventory_hostname }}:9200/_plugins/_ml/models/{{ ml_model_id }}/_deploy"
+        method: POST
+        user: admin
+        password: "{{ admin_password }}"
+        force_basic_auth: yes
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+      register: deploy_model_result
+
+    - name: Set deploy_task_id fact
+      ansible.builtin.set_fact:
+        ml_deploy_task_id: "{{ deploy_model_result.json.task_id }}"
+
+    - name: Debug ML deploy task_id
+      ansible.builtin.debug:
+        msg: "ML deploy task_id: {{ ml_deploy_task_id }}"
+
+    - name: Get ML model deployment task status
+      ansible.builtin.uri:
+        url: "https://{{ inventory_hostname }}:9200/_plugins/_ml/tasks/{{ ml_deploy_task_id }}"
+        method: GET
+        user: admin
+        password: "{{ admin_password }}"
+        force_basic_auth: yes
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+      register: deploy_task_status
+      retries: 3
+      delay: 5 
+      until: deploy_task_status.json.state == "COMPLETED"
+
+    - name: Set final ML model_id fact
+      ansible.builtin.set_fact:
+        final_ml_model_id: "{{ deploy_task_status.json.model_id }}"
+
+    - name: Display final ML model_id
+      ansible.builtin.debug:
+        msg: "Deployed ML model_id: {{ final_ml_model_id }}"    
+
+  run_once: true
+  delegate_to: "{{ groups['master'][0] }}"

@@ -1,6 +1,6 @@
 ## Common opensearch configuration parameters ##
 
-os_cluster_name: development-cluster
+os_cluster_name: raylina-cluster
 
 # opensearch download
 os_download_url: https://artifacts.opensearch.org/releases/bundle/opensearch

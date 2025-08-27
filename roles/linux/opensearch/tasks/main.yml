@@ -82,3 +82,6 @@
   debug:
     msg: "{{ os_roles }}"
   run_once: true
+
+- name: MLL Models | Creation 
+  ansible.builtin.import_tasks: mllmodel.yml
