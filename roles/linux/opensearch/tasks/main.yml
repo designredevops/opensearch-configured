@@ -16,8 +16,8 @@
 - name: Populate the nodes to /etc/hosts
   ansible.builtin.import_tasks: etchosts.yml
 
-- name: Tune the system settings
-  ansible.builtin.import_tasks: tune.yml
+    #- name: Tune the system settings
+    #ansible.builtin.import_tasks: tune.yml
 
 - name: Include opensearch installation
   ansible.builtin.import_tasks: opensearch.yml
