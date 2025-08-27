@@ -267,6 +267,7 @@
 
     # Hashed passwords are written for all users found in the previous task. Passwords are searched in variables
     # set by the user when starting the role (admin_password, kibanaserver_password, etc.).
+
     - name: Security Plugin configuration | Set passwords for all users from custom config
       ansible.builtin.shell: >
         sed -i '/hash: / s,{{ lookup('vars', item + '_password') }},'$(bash {{ os_sec_plugin_tools_path }}/hash.sh -p {{ lookup('vars', item + '_password') }} | tail -1)','
@@ -275,7 +276,7 @@
         JAVA_HOME: "{{ os_home }}/jdk"
       run_once: true
       when: configuration.changed or copy_custom_security_configs
-      with_items: "{{ custom_users_filtered }}"
+      loop: "{{ custom_users_filtered.keys() | list }}"
 
 - name: Security Plugin configuration | Initialize the opensearch security index in opensearch with custom configs
   ansible.builtin.shell: >

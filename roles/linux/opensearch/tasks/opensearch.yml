@@ -27,12 +27,14 @@
   ansible.builtin.command: chdir=/tmp/ tar -xvzf opensearch.tar.gz -C "{{ os_home }}" --strip-components=1
   when: download.changed or iac_enable
 
+
 - name: Change ownership of a directory
   ansible.builtin.file:
       path: /usr/share/opensearch
-      owner: missaoui
-      group: missaoui 
+      owner: "{{ os_user }}"
+      group: "{{ os_user }}"
       recurse: yes
+  become: yes    
 
 - name: OpenSearch Install | Copy Configuration File
   ansible.builtin.blockinfile:

@@ -6,7 +6,7 @@ network.host: "{{ hostvars[inventory_hostname]['ip'] }}"
 
 http.port: 9200
 
-bootstrap.memory_lock: true
+bootstrap.memory_lock: false 
 
 discovery.seed_hosts: ["{{ os_nodes }}"]
 

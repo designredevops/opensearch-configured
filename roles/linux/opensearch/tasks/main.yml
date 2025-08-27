@@ -52,6 +52,10 @@
     connect_timeout: 1
     timeout: 120
 
+- name: Debug authentication result
+  ansible.builtin.debug:
+    var: auth_check.json
+
 - name: Check the opensearch status
   ansible.builtin.uri:
     url: "https://{{ inventory_hostname }}:9200/_cluster/health?pretty"

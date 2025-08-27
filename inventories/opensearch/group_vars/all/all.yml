@@ -7,21 +7,21 @@ os_download_url: https://artifacts.opensearch.org/releases/bundle/opensearch
 
 # opensearch version
 # 3.x Latest Version
-os_version: "3.1.0"
+os_version: "3.2.0"
 
 # opensearch dashboards version
 # 3.x Latest Version
-os_dashboards_version: "3.1.0"
+os_dashboards_version: "3.2.0"
 
 # Configure hostnames for opensearch nodes
 # It is required to configure SSL
 # Example es1.example.com, es2.example.com
-domain_name: raylina.fr 
+domain_name: designre.local 
 
 # Java memory heap values(GB) for opensearch
 # You can change it based on server specs
-xms_value: 3
-xmx_value: 3
+xms_value: 2
+xmx_value: 2
 
 # Cluster type whether its single-node or multi-node
 cluster_type: multi-node
