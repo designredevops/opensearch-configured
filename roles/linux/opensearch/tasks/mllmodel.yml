@@ -93,7 +93,8 @@
       register: ml_task_status
       retries: 3
       delay: 5 
-      until: ml_task_status.json.state == "CREATED" or ml_task_status.json.state == "COMPLETED"
+      until: ml_task_status.json.state == "COMPLETED"
+      changed_when: false
 
     - name: Set ML model_id fact
       ansible.builtin.set_fact:
