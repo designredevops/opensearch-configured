@@ -25,8 +25,8 @@
           }
         body_format: json
       register: ml_settings_result
-      retries: 3
-      delay: 5
+      retries: 10
+      delay: 10 
       until: ml_settings_result.status == 200
 
     - name: Register KNN ML model group
@@ -41,7 +41,7 @@
           Content-Type: "application/json"
         body: |
           {
-            "name": "KNN_model_group",
+            "name": "KNN_model_groupi v2",
             "description": "A model group for KNN Plugin",
             "access_mode": "public"
           }
@@ -91,8 +91,8 @@
         headers:
           Content-Type: "application/json"
       register: ml_task_status
-      retries: 3
-      delay: 5 
+      retries: 10 
+      delay: 10
       until: ml_task_status.json.state == "COMPLETED"
       changed_when: false
 
@@ -135,8 +135,8 @@
         headers:
           Content-Type: "application/json"
       register: deploy_task_status
-      retries: 3
-      delay: 5 
+      retries: 10 
+      delay: 10 
       until: deploy_task_status.json.state == "COMPLETED"
 
     - name: Set final ML model_id fact
